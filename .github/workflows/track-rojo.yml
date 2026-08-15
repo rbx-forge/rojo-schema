@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+  issues: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -38,12 +38,10 @@ jobs:
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           echo "vendored $current, upstream $latest"
 
-          open=$(gh pr list --state open --head "track/$latest" --json number --jq 'length')
-
           if [ "$latest" = "$current" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-          elif [ "$open" != "0" ]; then
-            echo "a pull request for $latest is already open"
+          elif git ls-remote --exit-code --heads origin "track/$latest" >/dev/null 2>&1; then
+            echo "track/$latest already exists, so $latest was already prepared"
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -56,9 +54,9 @@ jobs:
           cargo run --locked -- vendor --tag "${{ steps.upstream.outputs.latest }}"
           cargo run --locked -- generate
 
-      # The pull request is opened with GITHUB_TOKEN, which does not start new
-      # workflow runs, so the checks run here and the result is stated in the
-      # pull request body.
+      # Nothing here starts a new workflow run: work done with GITHUB_TOKEN does
+      # not trigger workflows. The checks therefore run in this job, and the
+      # issue states their result.
       - name: Verify
         if: steps.upstream.outputs.changed == 'true'
         run: |
@@ -66,13 +64,18 @@ jobs:
           cargo clippy --all-targets --locked -- -D warnings
           cargo test --locked
 
-      - name: Open a pull request
+      # The branch is pushed and an issue announces it, rather than a pull
+      # request being opened directly: the organization does not let Actions
+      # create pull requests, and an issue notifies just as well while leaving
+      # the pull request to a human.
+      - name: Push the branch and open an issue
         if: steps.upstream.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LATEST: ${{ steps.upstream.outputs.latest }}
         run: |
           set -euo pipefail
+          base="$GITHUB_REF_NAME"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "track/$LATEST"
@@ -80,19 +83,28 @@ jobs:
           git commit -m "chore: vendor Rojo $LATEST and recompile the schemas"
           git push --set-upstream origin "track/$LATEST"
 
+          diff=$(git diff --stat "origin/$base" -- schema)
+
           {
             echo "Rojo published [$LATEST](https://github.com/rojo-rbx/rojo/releases/tag/$LATEST)."
             echo
-            echo "The vendored sources were re-copied at that tag and the schemas recompiled."
-            echo "Format, lint and tests all passed in the job that opened this pull request."
+            echo "The vendored sources were re-copied at that tag and the schemas recompiled"
+            echo "on \`track/$LATEST\`. Format, lint and tests all passed in [the job that"
+            echo "prepared it](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+            echo
+            echo "**Open the pull request:** https://github.com/$GITHUB_REPOSITORY/compare/$base...track/$LATEST?expand=1"
             echo
             echo "## Grammar diff"
             echo
-            echo '```'
-            git diff --stat "origin/${GITHUB_REF_NAME}" -- schema
-            echo '```'
+            if [ -z "$diff" ]; then
+              echo "None. This release did not change the three file formats."
+            else
+              echo '```'
+              echo "$diff"
+              echo '```'
+            fi
             echo
             echo "Read the schema diff before merging: it is the release's grammar change, in Rojo's own words."
-          } > body.md
+          } > "$RUNNER_TEMP/body.md"
 
-          gh pr create --title "chore: track Rojo $LATEST" --body-file body.md --base "$GITHUB_REF_NAME"
+          gh issue create --title "Rojo $LATEST is out" --body-file "$RUNNER_TEMP/body.md"
