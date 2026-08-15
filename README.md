@@ -97,6 +97,11 @@ Three outcomes are possible, and they are meant to be distinguishable:
   the compiler does not model. The error names the container. Fix `vendor.toml`
   or the compiler, never the vendored file.
 
+The file list itself is version-dependent: `src/syncback/mod.rs` did not exist
+before 7.7.0, for instance. `vendor` says so plainly when a pinned path is
+absent at the requested tag, which matters mostly when pinning an older release
+on purpose.
+
 `cargo run -- check` is the read-only form: it re-hashes `vendor/`, recompiles
 twice to prove the output is deterministic, and compares against what is
 committed. CI runs it, so a vendored file edited by hand and a schema left
@@ -135,3 +140,12 @@ tests/         fixtures Rojo accepts and fixtures it rejects
 Point `ROJO_SCHEMA_CORPUS` at a real Rojo project to validate every
 `.project.json`, `.meta.json` and `.model.json` under it as part of the test
 run. Nothing from that corpus is committed here.
+
+## License
+
+This project is [MPL-2.0](./LICENSE), the same license Rojo uses.
+
+The files under `vendor/` are verbatim copies of Rojo's source, redistributed
+unmodified and remaining the work of the Rojo authors. See
+[THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md) for the file list and the
+tag they were taken from.

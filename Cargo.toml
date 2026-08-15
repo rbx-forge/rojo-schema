@@ -5,7 +5,7 @@ edition = "2021"
 rust-version = "1.97"
 description = "Compiles JSON Schemas for Rojo project, meta and model files from vendored Rojo sources"
 repository = "https://github.com/rbx-forge/rojo-schema"
-license = "MIT"
+license = "MPL-2.0"
 publish = false
 
 [dependencies]

@@ -124,16 +124,17 @@ pub fn refresh(root: &Path, pin: &Pin, tag: &str) -> Result<Pin> {
 }
 
 fn fetch(url: &str) -> Result<String> {
-    let mut response = ureq::get(url)
-        .call()
-        .with_context(|| format!("requesting {url}"))?;
-
-    if response.status() == 404 {
-        bail!(
-            "{url} is gone at this tag. The file moved or was renamed upstream, \
-             so its `source` in {PIN_FILE} needs updating by hand."
-        );
-    }
+    // ureq reports a non-2xx status as an error, so the missing-file case has to
+    // be caught here rather than read off a response.
+    let mut response = match ureq::get(url).call() {
+        Ok(response) => response,
+        Err(ureq::Error::StatusCode(404)) => bail!(
+            "{url} does not exist at this tag. Either the file moved or was \
+             renamed upstream, or it was added to Rojo after this tag. Adjust \
+             the file list in {PIN_FILE} to match the release you are pinning."
+        ),
+        Err(error) => return Err(error).with_context(|| format!("requesting {url}")),
+    };
 
     response
         .body_mut()
