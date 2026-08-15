@@ -1,8 +1,8 @@
 name: Track Rojo
 
-# Watches for a new Rojo release, re-vendors its sources, recompiles, and opens
-# a pull request with the resulting grammar diff. A release that breaks the
-# compiler fails this job instead of producing a quietly wrong schema.
+# Watches for a new Rojo release, re-vendors its sources, recompiles, pushes the
+# result on a branch and opens an issue carrying the grammar diff. A release that
+# breaks the compiler fails this job instead of producing a quietly wrong schema.
 
 on:
   schedule:
