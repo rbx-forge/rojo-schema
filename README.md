@@ -35,11 +35,24 @@ release it actually runs, swap `main` for the matching tag:
 https://raw.githubusercontent.com/rbx-forge/rojo-schema/rojo-7.7.0/schema/project.schema.json
 ```
 
-Both go through `raw.githubusercontent.com` on purpose. Editors do not fetch
-schemas from just anywhere: VS Code ships a `json.schemaDownload.trustedDomains`
-allowlist that already contains that host, while `github.com/.../releases/download/...`
-is not on it and redirects besides, so a release asset URL loads in a browser but
-is refused in an editor.
+### Letting your editor fetch it
+
+VS Code downloads schemas only from an allowlist of URL prefixes, and it ships
+with two entries, both under Microsoft's own repositories. Any other URL is
+refused with `Location ... is untrusted`, whatever the host. Add this once, in
+the workspace `.vscode/settings.json` so it travels with the repository:
+
+```json
+"json.schemaDownload.trustedDomains": {
+  "https://raw.githubusercontent.com/rbx-forge/rojo-schema/": true
+}
+```
+
+It is a prefix, not a domain, so this grants nothing beyond this repository.
+
+Use a `raw.githubusercontent.com` URL rather than a release asset:
+`github.com/.../releases/download/...` redirects to a signed host, which cannot
+be allowlisted by prefix at all.
 
 ## Releases
 
