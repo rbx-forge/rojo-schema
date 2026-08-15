@@ -1,0 +1,98 @@
+name: Track Rojo
+
+# Watches for a new Rojo release, re-vendors its sources, recompiles, and opens
+# a pull request with the resulting grammar diff. A release that breaks the
+# compiler fails this job instead of producing a quietly wrong schema.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Compare with the latest Rojo release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          latest=$(gh api repos/rojo-rbx/rojo/releases/latest --jq .tag_name)
+          current=$(grep -m1 '^tag = ' vendor.toml | cut -d'"' -f2)
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "vendored $current, upstream $latest"
+
+          open=$(gh pr list --state open --head "track/$latest" --json number --jq 'length')
+
+          if [ "$latest" = "$current" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          elif [ "$open" != "0" ]; then
+            echo "a pull request for $latest is already open"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Re-vendor and recompile
+        if: steps.upstream.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          cargo run --locked -- vendor --tag "${{ steps.upstream.outputs.latest }}"
+          cargo run --locked -- generate
+
+      # The pull request is opened with GITHUB_TOKEN, which does not start new
+      # workflow runs, so the checks run here and the result is stated in the
+      # pull request body.
+      - name: Verify
+        if: steps.upstream.outputs.changed == 'true'
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets --locked -- -D warnings
+          cargo test --locked
+
+      - name: Open a pull request
+        if: steps.upstream.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATEST: ${{ steps.upstream.outputs.latest }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "track/$LATEST"
+          git add vendor vendor.toml schema
+          git commit -m "chore: vendor Rojo $LATEST and recompile the schemas"
+          git push --set-upstream origin "track/$LATEST"
+
+          {
+            echo "Rojo published [$LATEST](https://github.com/rojo-rbx/rojo/releases/tag/$LATEST)."
+            echo
+            echo "The vendored sources were re-copied at that tag and the schemas recompiled."
+            echo "Format, lint and tests all passed in the job that opened this pull request."
+            echo
+            echo "## Grammar diff"
+            echo
+            echo '```'
+            git diff --stat "origin/${GITHUB_REF_NAME}" -- schema
+            echo '```'
+            echo
+            echo "Read the schema diff before merging: it is the release's grammar change, in Rojo's own words."
+          } > body.md
+
+          gh pr create --title "chore: track Rojo $LATEST" --body-file body.md --base "$GITHUB_REF_NAME"

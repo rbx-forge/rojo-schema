@@ -1,0 +1,100 @@
+name: Release
+
+# One immutable release per distinct set of schemas, named after the Rojo
+# release they describe. Consumers pin a release asset URL; the raw files on
+# main are the moving "latest".
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - vendor.toml
+      - schema/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Never publish schemas that do not match the vendored sources they claim
+      # to come from.
+      - name: Schemas are current
+        run: cargo run --locked -- check
+
+      - name: Choose a tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(grep -m1 '^version = ' vendor.toml | cut -d'"' -f2)
+          base="rojo-$version"
+
+          if ! gh release view "$base" >/dev/null 2>&1; then
+            echo "tag=$base" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The Rojo release already has a snapshot. Publish another one only
+          # when the schemas themselves differ, not when the manifest moved.
+          mkdir -p previous
+          gh release download "$base" --pattern manifest.json --dir previous
+          if [ "$(jq -S .schemas previous/manifest.json)" = "$(jq -S .schemas schema/manifest.json)" ]; then
+            echo "schemas are identical to $base, nothing to release"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          revision=2
+          while gh release view "$base-r$revision" >/dev/null 2>&1; do
+            revision=$((revision + 1))
+          done
+          echo "tag=$base-r$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        if: steps.tag.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          rojo_tag=$(grep -m1 '^tag = ' vendor.toml | cut -d'"' -f2)
+          generator=$(jq -r .generator.version schema/manifest.json)
+          repository="${GITHUB_REPOSITORY}"
+
+          {
+            echo "Schemas compiled from [Rojo ${rojo_tag}](https://github.com/rojo-rbx/rojo/releases/tag/${rojo_tag}) by rojo-schema ${generator}."
+            echo
+            echo "## Pin this snapshot"
+            echo
+            echo '```json'
+            echo "{ \"\$schema\": \"https://github.com/${repository}/releases/download/${TAG}/project.schema.json\" }"
+            echo '```'
+            echo
+            echo "Replace \`project\` with \`meta\` or \`model\` for the other two formats."
+            echo
+            echo "## Digests"
+            echo
+            jq -r '.schemas | to_entries[] | "- `\(.key)` `\(.value)`"' schema/manifest.json
+          } > notes.md
+
+          gh release create "$TAG" \
+            schema/project.schema.json \
+            schema/meta.schema.json \
+            schema/model.schema.json \
+            schema/manifest.json \
+            --title "$TAG" \
+            --notes-file notes.md

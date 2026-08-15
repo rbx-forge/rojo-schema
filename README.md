@@ -28,6 +28,34 @@ Rojo declares `$schema` as a real field on all three formats, so this does not
 break parsing. Editors can also be configured by file pattern, which is the
 better option for `.meta.json` and `.model.json` files.
 
+That URL tracks `main`, so it follows Rojo. To freeze a project on one Rojo
+release instead, point at a release asset:
+
+```
+https://github.com/rbx-forge/rojo-schema/releases/download/rojo-7.7.0/project.schema.json
+```
+
+## Releases
+
+Every distinct set of schemas gets its own release, named after the Rojo release
+it describes: `rojo-7.7.0`. Each one carries the three schemas and the manifest
+as assets, and the notes state the Rojo tag, the generator version and the
+digest of each file.
+
+Releases are immutable. If the compiler itself changes and produces different
+schemas from the same Rojo release, the next snapshot is `rojo-7.7.0-r2`, and so
+on. A change that leaves the schemas identical publishes nothing.
+
+Two jobs keep this moving without anyone watching Rojo:
+
+- **Track Rojo** runs daily. When Rojo publishes a release, it re-vendors the
+  sources at that tag, recompiles, runs the full check suite and opens a pull
+  request carrying the grammar diff. If the release broke the compiler, the job
+  fails and no pull request appears, which is the intended outcome: a human
+  looks at what moved upstream.
+- **Release** runs when `schema/` or `vendor.toml` lands on `main`, and cuts the
+  snapshot described above.
+
 ## How it is built
 
 The grammar is not transcribed, it is read:
@@ -49,6 +77,9 @@ that disappeared upstream, an enum shape it does not model: each is an error
 that stops the build.
 
 ## Following a new Rojo release
+
+The Track Rojo job does this on its own and opens a pull request. By hand, it is
+the same four commands:
 
 ```sh
 cargo run -- vendor --tag v7.8.0   # re-copies vendor/ and repins the digests
@@ -74,9 +105,10 @@ stale both fail loudly.
 ## What these schemas do not do
 
 - **Property values are not typed per class.** `$properties` accepts any value
-  Rojo would resolve, but the schema does not yet know that `Workspace.Gravity`
-  is a number. Typing service properties from the reflection database is the
-  next step.
+  Rojo would resolve, but the schema does not know that `Workspace.Gravity` is a
+  number. Doing better means pulling in Roblox's reflection database, a second
+  source that moves on its own schedule, and it is deliberately out of scope: a
+  schema compiled from Rojo alone is one that follows Rojo alone.
 - **Comments are a parser concern, not a schema one.** Rojo reads all three
   formats as JSONC, so comments and a `.jsonc` extension are fine. A validator
   has to strip them before validating, as editors already do.
