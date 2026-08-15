@@ -1,0 +1,6 @@
+{
+  "tree": { "$className": "DataModel" },
+  "syncRules": [
+    { "pattern": "*.luau", "use": "dir" }
+  ]
+}

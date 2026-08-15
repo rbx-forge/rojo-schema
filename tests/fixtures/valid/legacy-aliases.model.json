@@ -1,0 +1,12 @@
+{
+  "ClassName": "Folder",
+  "Children": [
+    {
+      "Name": "Inner",
+      "ClassName": "Folder",
+      "Properties": {
+        "Archivable": true
+      }
+    }
+  ]
+}

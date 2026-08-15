@@ -1,0 +1,10 @@
+{
+  "ignoreUnknownInstances": true,
+  "properties": {
+    "Disabled": true,
+    "Source": "print('hello')"
+  },
+  "attributes": {
+    "Tier": 3
+  }
+}

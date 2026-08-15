@@ -1,0 +1,6 @@
+{
+  "name": "minimal",
+  "tree": {
+    "$className": "DataModel"
+  }
+}

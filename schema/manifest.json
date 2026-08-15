@@ -1,0 +1,59 @@
+{
+  "containers": 16,
+  "generator": {
+    "name": "rojo-schema",
+    "version": "0.1.0"
+  },
+  "rojo": {
+    "repository": "https://github.com/rojo-rbx/rojo",
+    "tag": "v7.7.0",
+    "version": "7.7.0"
+  },
+  "schemas": {
+    "meta.schema.json": "8097426a8c97fafb29ca020ab0c2b3a7107113ccbcee4f4cb1bd95a8b308a631",
+    "model.schema.json": "eeb91a3c41d44f27bf63e9b4f5a8323f444eb04b3bd56d7d873daacff2244a07",
+    "project.schema.json": "9b0fb08ce498788f2b5125ae924f2639b3b0e1991812018cfc4b63e95098544f"
+  },
+  "sources": [
+    {
+      "path": "project.rs",
+      "sha256": "407383c1bb826a3829daeec321d465c1dec766d6cdda62f0ce541f9e3d4eb351",
+      "source": "src/project.rs"
+    },
+    {
+      "path": "glob.rs",
+      "sha256": "2c66fb33724ade11713e7a7620d9264bfe72b90d6b7fc4861188eeea7299041f",
+      "source": "src/glob.rs"
+    },
+    {
+      "path": "resolution.rs",
+      "sha256": "a6ebcc9a2d317d8ccf7b9ffcac2dab41ff2dd80520e15eab362e0312a5ec7867",
+      "source": "src/resolution.rs"
+    },
+    {
+      "path": "snapshot/metadata.rs",
+      "sha256": "861d8d09a26d210970cf62857fda088aa8aaef37bc153664d71d3d312167c05f",
+      "source": "src/snapshot/metadata.rs"
+    },
+    {
+      "path": "snapshot_middleware/mod.rs",
+      "sha256": "2890f3bc6546206f3662af9a65a7f29251cefc5954d1190bb63ea64c7d246e8e",
+      "source": "src/snapshot_middleware/mod.rs"
+    },
+    {
+      "path": "snapshot_middleware/meta_file.rs",
+      "sha256": "881362ce317df67b07988affc7d75f9771abf18726f5c401c398e27d7a0a0687",
+      "source": "src/snapshot_middleware/meta_file.rs"
+    },
+    {
+      "path": "snapshot_middleware/json_model.rs",
+      "sha256": "f42658bbfa474f6241b3aae1f78e040d93cdb4eac96de6f015b023153d754d84",
+      "source": "src/snapshot_middleware/json_model.rs"
+    },
+    {
+      "path": "syncback/mod.rs",
+      "sha256": "cb039512d5ae0c1e0a66a97e2aee53430a564835b246a17f2127a4d263ffa90b",
+      "source": "src/syncback/mod.rs"
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "$comment": "Compiled from Rojo v7.7.0 by rojo-schema. Do not edit by hand.",
+  "$defs": {
+    "AmbiguousValue": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 12,
+          "minItems": 12,
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnresolvedValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "object"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
+    "JsonModel": {
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "required": [
+                "className"
+              ]
+            },
+            {
+              "required": [
+                "ClassName"
+              ]
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "$schema": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Children": {
+          "description": "Alias of `children`.",
+          "items": {
+            "$ref": "#/$defs/JsonModel"
+          },
+          "type": "array"
+        },
+        "ClassName": {
+          "description": "Alias of `className`.",
+          "type": "string"
+        },
+        "Name": {
+          "description": "Alias of `name`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnresolvedValue"
+          },
+          "description": "Alias of `properties`.",
+          "type": "object"
+        },
+        "attributes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnresolvedValue"
+          },
+          "type": "object"
+        },
+        "children": {
+          "items": {
+            "$ref": "#/$defs/JsonModel"
+          },
+          "type": "array"
+        },
+        "className": {
+          "type": "string"
+        },
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnresolvedValue"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "UnresolvedValue": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "$ref": "#/$defs/AmbiguousValue"
+        }
+      ],
+      "description": "A user-friendly version of `Variant` that supports specifying ambiguous values. Ambiguous values need a reflection database to be resolved to a usable value.\n\nThis type is used in Rojo projects and JSON models to make specifying the most common types of properties, like strings or vectors, much easier."
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/rbx-forge/rojo-schema/main/schema/model.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "className"
+          ]
+        },
+        {
+          "required": [
+            "ClassName"
+          ]
+        }
+      ]
+    }
+  ],
+  "description": "An instance tree written as JSON, stored in a `.model.json` file. The file name provides the instance name, so a `name` field on the root is ignored.",
+  "properties": {
+    "$schema": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "Children": {
+      "description": "Alias of `children`.",
+      "items": {
+        "$ref": "#/$defs/JsonModel"
+      },
+      "type": "array"
+    },
+    "ClassName": {
+      "description": "Alias of `className`.",
+      "type": "string"
+    },
+    "Name": {
+      "description": "Alias of `name`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "Properties": {
+      "additionalProperties": {
+        "$ref": "#/$defs/UnresolvedValue"
+      },
+      "description": "Alias of `properties`.",
+      "type": "object"
+    },
+    "attributes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/UnresolvedValue"
+      },
+      "type": "object"
+    },
+    "children": {
+      "items": {
+        "$ref": "#/$defs/JsonModel"
+      },
+      "type": "array"
+    },
+    "className": {
+      "type": "string"
+    },
+    "id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "properties": {
+      "additionalProperties": {
+        "$ref": "#/$defs/UnresolvedValue"
+      },
+      "type": "object"
+    }
+  },
+  "title": "Rojo JSON model",
+  "type": "object"
+}

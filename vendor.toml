@@ -1,0 +1,52 @@
+# The Rojo sources this repository compiles its schemas from.
+#
+# The files under vendor/ are copied verbatim from the tag below and are never
+# compiled, only parsed. Refresh them with `rojo-schema vendor --tag vX.Y.Z`,
+# which rewrites both the files and the digests recorded here.
+#
+# `rojo-schema check` re-hashes vendor/ against these digests, so an edited or
+# half-refreshed vendor fails instead of silently producing a stale schema.
+
+repository = "https://github.com/rojo-rbx/rojo"
+tag = "v7.7.0"
+version = "7.7.0"
+
+[[files]]
+path = "project.rs"
+source = "src/project.rs"
+sha256 = "407383c1bb826a3829daeec321d465c1dec766d6cdda62f0ce541f9e3d4eb351"
+
+[[files]]
+path = "glob.rs"
+source = "src/glob.rs"
+sha256 = "2c66fb33724ade11713e7a7620d9264bfe72b90d6b7fc4861188eeea7299041f"
+
+[[files]]
+path = "resolution.rs"
+source = "src/resolution.rs"
+sha256 = "a6ebcc9a2d317d8ccf7b9ffcac2dab41ff2dd80520e15eab362e0312a5ec7867"
+
+[[files]]
+path = "snapshot/metadata.rs"
+source = "src/snapshot/metadata.rs"
+sha256 = "861d8d09a26d210970cf62857fda088aa8aaef37bc153664d71d3d312167c05f"
+
+[[files]]
+path = "snapshot_middleware/mod.rs"
+source = "src/snapshot_middleware/mod.rs"
+sha256 = "2890f3bc6546206f3662af9a65a7f29251cefc5954d1190bb63ea64c7d246e8e"
+
+[[files]]
+path = "snapshot_middleware/meta_file.rs"
+source = "src/snapshot_middleware/meta_file.rs"
+sha256 = "881362ce317df67b07988affc7d75f9771abf18726f5c401c398e27d7a0a0687"
+
+[[files]]
+path = "snapshot_middleware/json_model.rs"
+source = "src/snapshot_middleware/json_model.rs"
+sha256 = "f42658bbfa474f6241b3aae1f78e040d93cdb4eac96de6f015b023153d754d84"
+
+[[files]]
+path = "syncback/mod.rs"
+source = "src/syncback/mod.rs"
+sha256 = "cb039512d5ae0c1e0a66a97e2aee53430a564835b246a17f2127a4d263ffa90b"

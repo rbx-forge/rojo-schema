@@ -1,0 +1,4 @@
+{
+  "className": "Folder",
+  "children": { "Inner": { "className": "Folder" } }
+}

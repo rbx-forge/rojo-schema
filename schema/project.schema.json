@@ -1,0 +1,395 @@
+{
+  "$comment": "Compiled from Rojo v7.7.0 by rojo-schema. Do not edit by hand.",
+  "$defs": {
+    "AmbiguousValue": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 12,
+          "minItems": 12,
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnresolvedValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "object"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
+    "Middleware": {
+      "description": "Represents a possible 'transformer' used by Rojo to turn a file system item into a Roblox Instance. Missing from this list is metadata. This is deliberate, as metadata is not a snapshot middleware.\n\nDirectories cannot be used for sync rules so they're ignored by Serde.",
+      "enum": [
+        "csv",
+        "jsonModel",
+        "json",
+        "serverScript",
+        "clientScript",
+        "moduleScript",
+        "pluginScript",
+        "legacyClientScript",
+        "legacyServerScript",
+        "runContextServerScript",
+        "runContextClientScript",
+        "project",
+        "rbxm",
+        "rbxmx",
+        "toml",
+        "text",
+        "yaml",
+        "ignore"
+      ],
+      "type": "string"
+    },
+    "OptionalPathNode": {
+      "additionalProperties": true,
+      "properties": {
+        "optional": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "optional"
+      ],
+      "type": "object"
+    },
+    "PathNode": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/OptionalPathNode"
+        }
+      ],
+      "description": "Describes a path that is either optional or required"
+    },
+    "ProjectNode": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ProjectNode"
+      },
+      "description": "Describes an instance and its descendants in a project.",
+      "properties": {
+        "$attributes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnresolvedValue"
+          },
+          "type": "object"
+        },
+        "$className": {
+          "description": "If set, defines the ClassName of the described instance.\n\n`$className` MUST be set if `$path` is not set.\n\n`$className` CANNOT be set if `$path` is set and the instance described by that path has a ClassName other than Folder.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "$id": {
+          "description": "If set, defines an ID for the described Instance that can be used to refer to it for the purpose of referent properties.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "$ignoreUnknownInstances": {
+          "description": "Defines the behavior when Rojo encounters unknown instances in Roblox Studio during live sync. `$ignoreUnknownInstances` should be considered a large hammer and used with care.\n\nIf set to `true`, those instances will be left alone. This may cause issues when files that turn into instances are removed while Rojo is not running.\n\nIf set to `false`, Rojo will destroy any instances it does not recognize.\n\nIf unset, its default value depends on other settings:\n\n- If `$path` is not set, defaults to `true`\n\n- If `$path` is set, defaults to `false`",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "$path": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PathNode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Defines that this instance should come from the given file path. This path can point to any file type supported by Rojo, including Lua files (`.lua`), Roblox models (`.rbxm`, `.rbxmx`), and localization table spreadsheets (`.csv`)."
+        },
+        "$properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnresolvedValue"
+          },
+          "description": "The properties that will be assigned to the resulting instance.",
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "SyncRule": {
+      "additionalProperties": true,
+      "description": "Represents an user-specified rule for transforming files into Instances using a given middleware.",
+      "properties": {
+        "exclude": {
+          "description": "A pattern used to determine if a file is excluded from this SyncRule.\n\nA glob pattern. `*` crosses path separators, so depth cannot be filtered with it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pattern": {
+          "description": "A pattern used to determine if a file is included in this SyncRule\n\nA glob pattern. `*` crosses path separators, so depth cannot be filtered with it.",
+          "type": "string"
+        },
+        "suffix": {
+          "description": "A suffix to trim off of file names, including the file extension. If not specified, the file extension is the only thing cut off.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "use": {
+          "$ref": "#/$defs/Middleware",
+          "description": "The middleware specified by the user for this SyncRule"
+        }
+      },
+      "required": [
+        "pattern",
+        "use"
+      ],
+      "type": "object"
+    },
+    "SyncbackRules": {
+      "additionalProperties": false,
+      "properties": {
+        "createIgnoreDirPaths": {
+          "description": "Whether the globs specified in `ignore_paths` should be modified to also match directories. Defaults to `true`.\n\nIf this is `true`, it'll take ignore globs that end in `/**` and convert them to also handle the directory they're referring to. This is generally a better UX.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ignorePaths": {
+          "description": "A list of patterns to check against the path an Instance would serialize to. If a path matches one of these, the Instance won't be syncbacked.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ignoreProperties": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": "A map of classes to properties to ignore for that class when doing syncback.",
+          "type": "object"
+        },
+        "ignoreReferents": {
+          "description": "Whether to skip serializing referent properties like `Model.PrimaryPart` during syncback. Defaults to `false`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ignoreTrees": {
+          "description": "A list of subtrees in a file that will be ignored by Syncback.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "syncCurrentCamera": {
+          "description": "Whether or not the `CurrentCamera` of `Workspace` is included in the syncback or not. Defaults to `false`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "syncUnscriptable": {
+          "description": "Whether or not to sync properties that cannot be modified via scripts. Defaults to `true`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "UnresolvedValue": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "$ref": "#/$defs/AmbiguousValue"
+        }
+      ],
+      "description": "A user-friendly version of `Variant` that supports specifying ambiguous values. Ambiguous values need a reflection database to be resolved to a usable value.\n\nThis type is used in Rojo projects and JSON models to make specifying the most common types of properties, like strings or vectors, much easier."
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/rbx-forge/rojo-schema/main/schema/project.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A Rojo project, stored in a `.project.json` file. Describes the tree of instances Rojo builds or serves, and the settings it uses to do so.\n\nContains all of the configuration for a Rojo-managed project.\n\nProject files are stored in `.project.json` files.",
+  "properties": {
+    "$schema": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "blockedPlaceIds": {
+      "description": "If specified, contains a set of place IDs that this project is not compatible with when doing live sync.\n\nThis setting is intended to help prevent syncing a Rojo project into the wrong Roblox place.",
+      "items": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": [
+        "array",
+        "null"
+      ],
+      "uniqueItems": true
+    },
+    "emitLegacyScripts": {
+      "description": "Determines if Rojo should emit scripts with the appropriate `RunContext` for `*.client.lua` and `*.server.lua` files in the project instead of using `Script` and `LocalScript` Instances.",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "gameId": {
+      "description": "If specified, sets the current place's game ID when connecting to the Rojo server from Roblox Studio.",
+      "minimum": 0,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "globIgnorePaths": {
+      "description": "A list of globs, relative to the folder the project file is in, that match files that should be excluded if Rojo encounters them.",
+      "items": {
+        "description": "A glob pattern. A leading `!` negates an earlier pattern, and order matters.",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "name": {
+      "description": "The name of the top-level instance described by the project.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "placeId": {
+      "description": "If specified, sets the current place's place ID when connecting to the Rojo server from Roblox Studio.",
+      "minimum": 0,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "serveAddress": {
+      "description": "If specified, this address will be used in place of the default address As long as --address is unprovided.\n\nAn IPv4 or IPv6 address.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "serveAllowedHosts": {
+      "description": "Additional `Host`/`Origin` header values that `rojo serve` will accept beyond `localhost` and the bind address, such as a hostname like `mypc.lan` used to reach a network-exposed server by name. Listing any host also turns on `Host`/`Origin` validation for binds where it is otherwise off (such as `0.0.0.0`). The `--allowed-hosts` CLI option overrides this field when provided.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "servePlaceIds": {
+      "description": "If specified, contains the set of place IDs that this project is compatible with when doing live sync.\n\nThis setting is intended to help prevent syncing a Rojo project into the wrong Roblox place.",
+      "items": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": [
+        "array",
+        "null"
+      ],
+      "uniqueItems": true
+    },
+    "servePort": {
+      "description": "If specified, sets the default port that `rojo serve` should use when using this project for live sync.",
+      "maximum": 65535,
+      "minimum": 0,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "syncRules": {
+      "description": "A list of mappings of globs to syncing rules. If a file matches a glob, it will be 'transformed' into an Instance following the rule provided. Globs are relative to the folder the project file is in.",
+      "items": {
+        "$ref": "#/$defs/SyncRule"
+      },
+      "type": "array"
+    },
+    "syncbackRules": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SyncbackRules"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "A list of rules for syncback with this project file."
+    },
+    "tree": {
+      "$ref": "#/$defs/ProjectNode",
+      "description": "The tree of instances described by this project. Projects always describe at least one instance."
+    }
+  },
+  "required": [
+    "tree"
+  ],
+  "title": "Rojo project file",
+  "type": "object"
+}

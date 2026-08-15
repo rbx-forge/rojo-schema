@@ -1,0 +1,7 @@
+# The vendored Rojo sources are hashed byte for byte, so git must never rewrite
+# their line endings. Without this, a checkout on Windows fails the digest check.
+vendor/** -text
+
+# The generated schemas are compared against freshly compiled output, which is
+# always written with LF.
+schema/*.json -text

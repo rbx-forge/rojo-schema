@@ -1,0 +1,19 @@
+{
+  "className": "Model",
+  "properties": {
+    "Name": "Widget"
+  },
+  "attributes": {
+    "Kind": "prop"
+  },
+  "children": [
+    {
+      "name": "Handle",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [2, 2, 2]
+      }
+    }
+  ]
+}

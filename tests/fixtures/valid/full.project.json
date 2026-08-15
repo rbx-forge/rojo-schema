@@ -1,0 +1,68 @@
+{
+  "$schema": "../../../schema/project.schema.json",
+  "name": "full",
+  "servePort": 34872,
+  "serveAddress": "127.0.0.1",
+  "serveAllowedHosts": ["mypc.lan"],
+  "servePlaceIds": [1234567890],
+  "blockedPlaceIds": [9876543210],
+  "placeId": 1234567890,
+  "gameId": 1234567890,
+  "emitLegacyScripts": false,
+  "globIgnorePaths": ["**/*.spec.luau", "!**/Keep.spec.luau"],
+  "syncRules": [
+    {
+      "pattern": "*.data.json",
+      "exclude": "*.private.data.json",
+      "use": "json",
+      "suffix": ".data.json"
+    }
+  ],
+  "syncbackRules": {
+    "ignoreTrees": ["ServerStorage"],
+    "ignorePaths": ["assets/**"],
+    "ignoreProperties": {
+      "BasePart": ["Position"]
+    },
+    "syncCurrentCamera": false,
+    "syncUnscriptable": true,
+    "ignoreReferents": false,
+    "createIgnoreDirPaths": true
+  },
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "Gravity": 196.2,
+        "FilteringEnabled": true,
+        "StreamingEnabled": false
+      },
+      "$attributes": {
+        "BuiltBy": "rojo-schema"
+      },
+      "Baseplate": {
+        "$className": "Part",
+        "$id": "baseplate",
+        "$properties": {
+          "Size": [512, 20, 512],
+          "Color": [0.2, 0.3, 0.4],
+          "Material": {
+            "Enum": 816
+          }
+        }
+      }
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$path": "src/shared",
+      "$ignoreUnknownInstances": true
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": {
+        "optional": "src/server"
+      }
+    }
+  }
+}

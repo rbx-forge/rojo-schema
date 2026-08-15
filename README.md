@@ -1,0 +1,105 @@
+# rojo-schema
+
+JSON Schemas for the three file formats Rojo reads, compiled from Rojo's own
+source rather than written by hand.
+
+| Schema                      | Applies to                                  |
+| --------------------------- | ------------------------------------------- |
+| `schema/project.schema.json` | `*.project.json`                            |
+| `schema/meta.schema.json`    | `*.meta.json`, including `init.meta.json`   |
+| `schema/model.schema.json`   | `*.model.json`                              |
+
+`schema/manifest.json` records which Rojo release the three were compiled from,
+the digest of every source file that fed them, and the digest of each schema.
+
+## Using them
+
+Point a file at its schema:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/rbx-forge/rojo-schema/main/schema/project.schema.json",
+  "name": "my-game",
+  "tree": { "$className": "DataModel" }
+}
+```
+
+Rojo declares `$schema` as a real field on all three formats, so this does not
+break parsing. Editors can also be configured by file pattern, which is the
+better option for `.meta.json` and `.model.json` files.
+
+## How it is built
+
+The grammar is not transcribed, it is read:
+
+1. `vendor/` holds the Rojo source files that declare the formats, copied
+   verbatim from a release tag. They are never compiled, only parsed, which is
+   what lets them stay byte for byte identical to upstream.
+2. `vendor.toml` pins the tag and a SHA-256 per file.
+3. `syn` parses those files into an AST, and the serde attributes on them are
+   read the way serde would: `rename`, `rename_all`, `alias`, `default`, `skip`,
+   `skip_deserializing`, `flatten`, `untagged`, `deny_unknown_fields`.
+4. The doc comments Rojo's authors wrote become the schema descriptions.
+
+The result is that a field Rojo adds, renames or deletes moves the schema with
+it, and every description is Rojo's own wording rather than a paraphrase.
+
+Nothing is inferred silently. A type the compiler cannot describe, a container
+that disappeared upstream, an enum shape it does not model: each is an error
+that stops the build.
+
+## Following a new Rojo release
+
+```sh
+cargo run -- vendor --tag v7.8.0   # re-copies vendor/ and repins the digests
+cargo run -- generate              # recompiles schema/
+git diff schema/                   # read what changed in the grammar
+cargo test
+```
+
+Three outcomes are possible, and they are meant to be distinguishable:
+
+- **The diff is empty.** The release did not touch the formats.
+- **The diff shows new or changed fields.** That is the release's grammar
+  change, in Rojo's own words. Commit it.
+- **`generate` fails.** A type moved out of a vendored file, or grew a shape
+  the compiler does not model. The error names the container. Fix `vendor.toml`
+  or the compiler, never the vendored file.
+
+`cargo run -- check` is the read-only form: it re-hashes `vendor/`, recompiles
+twice to prove the output is deterministic, and compares against what is
+committed. CI runs it, so a vendored file edited by hand and a schema left
+stale both fail loudly.
+
+## What these schemas do not do
+
+- **Property values are not typed per class.** `$properties` accepts any value
+  Rojo would resolve, but the schema does not yet know that `Workspace.Gravity`
+  is a number. Typing service properties from the reflection database is the
+  next step.
+- **Comments are a parser concern, not a schema one.** Rojo reads all three
+  formats as JSONC, so comments and a `.jsonc` extension are fine. A validator
+  has to strip them before validating, as editors already do.
+- **`className` in a `.meta.json`.** Rojo only acts on it inside an
+  `init.meta.json`, but it ignores unknown fields elsewhere rather than
+  rejecting them, so the schema accepts it in both and says so in the field
+  description.
+- **`$path` cannot be resolved.** JSON Schema cannot know what class a
+  filesystem path produces, so the constraints Rojo enforces between `$path` and
+  `$className` are documented in the descriptions and not enforced here.
+
+## Layout
+
+```
+vendor/        Rojo sources, verbatim, pinned by vendor.toml
+src/ty.rs      the subset of Rust types the grammar is written in
+src/ir.rs      syn AST to a serde-aware intermediate form
+src/emit.rs    intermediate form to JSON Schema
+src/vendor.rs  the pin file, its digests, and refreshing it from a tag
+schema/        the generated documents, committed
+tests/         fixtures Rojo accepts and fixtures it rejects
+```
+
+Point `ROJO_SCHEMA_CORPUS` at a real Rojo project to validate every
+`.project.json`, `.meta.json` and `.model.json` under it as part of the test
+run. Nothing from that corpus is committed here.

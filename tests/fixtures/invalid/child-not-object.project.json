@@ -1,0 +1,6 @@
+{
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": "src/workspace"
+  }
+}
