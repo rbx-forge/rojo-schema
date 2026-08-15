@@ -28,19 +28,26 @@ Rojo declares `$schema` as a real field on all three formats, so this does not
 break parsing. Editors can also be configured by file pattern, which is the
 better option for `.meta.json` and `.model.json` files.
 
-That URL tracks `main`, so it follows Rojo. To freeze a project on one Rojo
-release instead, point at a release asset:
+That URL tracks `main`, so it follows Rojo. To freeze a project on the Rojo
+release it actually runs, swap `main` for the matching tag:
 
 ```
-https://github.com/rbx-forge/rojo-schema/releases/download/rojo-7.7.0/project.schema.json
+https://raw.githubusercontent.com/rbx-forge/rojo-schema/rojo-7.7.0/schema/project.schema.json
 ```
+
+Both go through `raw.githubusercontent.com` on purpose. Editors do not fetch
+schemas from just anywhere: VS Code ships a `json.schemaDownload.trustedDomains`
+allowlist that already contains that host, while `github.com/.../releases/download/...`
+is not on it and redirects besides, so a release asset URL loads in a browser but
+is refused in an editor.
 
 ## Releases
 
 Every distinct set of schemas gets its own release, named after the Rojo release
 it describes: `rojo-7.7.0`. Each one carries the three schemas and the manifest
 as assets, and the notes state the Rojo tag, the generator version and the
-digest of each file.
+digest of each file. The tag is what a project pins against, through the raw URL
+above; the assets are there for anything that downloads rather than fetches.
 
 Releases are immutable. If the compiler itself changes and produces different
 schemas from the same Rojo release, the next snapshot is `rojo-7.7.0-r2`, and so

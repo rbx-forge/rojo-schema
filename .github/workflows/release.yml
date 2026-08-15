@@ -81,10 +81,14 @@ jobs:
             echo "## Pin this snapshot"
             echo
             echo '```json'
-            echo "{ \"\$schema\": \"https://github.com/${repository}/releases/download/${TAG}/project.schema.json\" }"
+            echo "{ \"\$schema\": \"https://raw.githubusercontent.com/${repository}/${TAG}/schema/project.schema.json\" }"
             echo '```'
             echo
             echo "Replace \`project\` with \`meta\` or \`model\` for the other two formats."
+            echo
+            echo "Pin through the tag rather than the release assets below: editors only"
+            echo "fetch schemas from an allowlist of hosts, and \`raw.githubusercontent.com\`"
+            echo "is on it while release asset URLs are not."
             echo
             echo "## Digests"
             echo
